@@ -1,0 +1,52 @@
+{
+  "name": "@textbee/mcp",
+  "version": "0.0.1",
+  "description": "MCP server for textbee.dev. Give your AI agent a phone number: send and read SMS through your own Android phone.",
+  "license": "MIT",
+  "type": "module",
+  "bin": { "textbee-mcp": "./dist/bin.js" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "LICENSE", "README.md"],
+  "sideEffects": false,
+  "engines": { "node": ">=20" },
+  "packageManager": "pnpm@9.14.2",
+  "publishConfig": { "access": "public", "provenance": true },
+  "repository": { "type": "git", "url": "git+https://github.com/textbee/textbee-mcp.git" },
+  "homepage": "https://textbee.dev",
+  "bugs": { "url": "https://github.com/textbee/textbee-mcp/issues" },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "sms",
+    "sms-gateway",
+    "textbee",
+    "android",
+    "ai-agent",
+    "claude",
+    "cursor"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "test": "vitest run --minWorkers=1 --maxWorkers=2",
+    "start": "node dist/bin.js",
+    "inspect": "pnpm build && npx @modelcontextprotocol/inspector@latest --cli node dist/bin.js --method tools/list",
+    "check:hygiene": "node scripts/hygiene.mjs",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@textbee/sdk": "^0.2.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
