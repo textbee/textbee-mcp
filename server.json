@@ -1,0 +1,38 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.textbee/mcp",
+  "title": "textbee SMS",
+  "description": "Send and read SMS through your own Android phone via textbee.dev, the open-source SMS gateway.",
+  "repository": {
+    "url": "https://github.com/textbee/textbee-mcp",
+    "source": "github"
+  },
+  "websiteUrl": "https://textbee.dev/mcp",
+  "version": "0.0.2",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@textbee/mcp",
+      "version": "0.0.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "TEXTBEE_API_KEY",
+          "description": "API key from the textbee dashboard (app.textbee.dev/dashboard).",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "TEXTBEE_BASE_URL",
+          "description": "Self-hosted instance URL. Defaults to https://api.textbee.dev; the /api/v1 suffix is added automatically.",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}
