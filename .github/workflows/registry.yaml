@@ -1,15 +1,14 @@
-# Publishes the server to the official MCP Registry after each GitHub release.
+# Manual retry for publishing the server to the official MCP Registry.
 #
-# release.yaml publishes the npm package first and then creates the release,
-# so by the time this fires the package version the registry validates
-# already exists on npm. Ownership is proven two ways with no stored secrets:
-# GitHub OIDC for the io.github.textbee namespace, and the mcpName field in the
-# published package.json for the npm package.
+# The normal path is the registry job at the end of release.yaml, which runs
+# right after the npm publish. Releases created by GITHUB_TOKEN do not fire
+# the `release` event, so this workflow cannot hang off that event; it exists
+# for re-running a publish by hand. Ownership is proven with no stored
+# secrets: GitHub OIDC for the io.github.textbee namespace, and the mcpName
+# field in the published package.json for the npm package.
 name: MCP Registry
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
 
 permissions:

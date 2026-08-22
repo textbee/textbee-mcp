@@ -124,3 +124,38 @@ jobs:
             --title "v$VERSION" \
             --target "$GITHUB_SHA" \
             --generate-notes
+
+  # Runs only when a version was actually published above. A release created
+  # by GITHUB_TOKEN does not fire the `release` event, so this cannot live in a
+  # separate event-triggered workflow; registry.yaml remains for manual retries.
+  registry:
+    name: Publish v${{ needs.check.outputs.version }} to the MCP Registry
+    needs: [check, release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      # OIDC proves ownership of the io.github.textbee namespace.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+
+      - name: Set server.json version
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+        run: |
+          jq --arg v "$VERSION" '.version = $v | .packages[0].version = $v' server.json > server.tmp && mv server.tmp server.json
+
+      - name: Authenticate to the MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish server to the MCP Registry
+        run: ./mcp-publisher publish
