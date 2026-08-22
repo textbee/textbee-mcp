@@ -15,7 +15,7 @@
   "sideEffects": false,
   "engines": { "node": ">=20" },
   "packageManager": "pnpm@9.14.2",
-  "publishConfig": { "access": "public", "provenance": true },
+  "publishConfig": { "access": "public" },
   "repository": { "type": "git", "url": "git+https://github.com/textbee/textbee-mcp.git" },
   "homepage": "https://textbee.dev",
   "bugs": { "url": "https://github.com/textbee/textbee-mcp/issues" },
