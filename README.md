@@ -4,7 +4,7 @@
 [![CI](https://github.com/textbee/textbee-mcp/actions/workflows/ci.yaml/badge.svg)](https://github.com/textbee/textbee-mcp/actions/workflows/ci.yaml)
 [![license](https://img.shields.io/npm/l/%40textbee%2Fmcp)](./LICENSE)
 
-MCP server for [textbee.dev](https://textbee.dev), the open source SMS gateway that turns an Android phone into an SMS API. Gives Claude Desktop, Claude Code, Cursor, and any MCP client the ability to send and read SMS through your own phone and your own number.
+MCP server for [textbee.dev](https://textbee.dev), the open source SMS gateway that turns an Android phone into an SMS API. Gives Claude, Cursor, and any MCP client the ability to send and read SMS through your own phone and your own number.
 
 Three tools, no per-message markup, works with self-hosted textbee instances.
 
@@ -12,15 +12,36 @@ Three tools, no per-message markup, works with self-hosted textbee instances.
 
 You need a textbee account with a paired Android device and an API key from the [dashboard](https://app.textbee.dev/dashboard). The key has full account access; treat it like a password.
 
+### claude.ai, Claude Desktop, and the Claude mobile apps (no install)
+
+These use the hosted endpoint at `https://mcp.textbee.dev/mcp`, which runs the same tools from this package.
+
+1. In claude.ai or Claude Desktop, open **Customize**, then **Connectors**, then **+ Add** and **Add custom connector**.
+2. Enter the name `textbee` and the URL `https://mcp.textbee.dev/mcp`, then click **Continue** twice.
+3. Choose **Sign in now** and, as the OAuth client, **Register automatically**. Click **Add**.
+4. Paste your API key on the textbee sign-in page and click **Connect**.
+
+One connection works on the web, in Claude Desktop, and in the Claude mobile apps (the mobile apps cannot add connectors themselves). On Team and Enterprise plans, an owner adds the connector for the organization first. It lasts 90 days, then Claude asks you to reconnect. textbee checks the key and does not store it, but the key does pass through textbee's server. Revoke the key in the dashboard to disconnect. To keep the key on your machine, use the local setup below.
+
 ### Claude Code
+
+Local, with the key in your own config:
 
 ```bash
 claude mcp add textbee -s user -e TEXTBEE_API_KEY=your-key -- npx -y @textbee/mcp
 ```
 
-### Claude Desktop
+Or hosted, signing in with your key in the browser:
 
-Add to `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`):
+```bash
+claude mcp add --transport http -s user textbee https://mcp.textbee.dev/mcp
+```
+
+Then run `/mcp` in Claude Code, select `textbee`, and choose **Authenticate**.
+
+### Claude Desktop (local)
+
+Add to `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`, Windows: `%APPDATA%\Claude\claude_desktop_config.json`), then restart Claude Desktop:
 
 ```json
 {
@@ -36,7 +57,9 @@ Add to `claude_desktop_config.json` (macOS: `~/Library/Application Support/Claud
 
 ### Cursor
 
-The same object in `~/.cursor/mcp.json`.
+The same object in `~/.cursor/mcp.json`. Clients that support remote servers with headers can use `https://mcp.textbee.dev/mcp` instead and send the key as `x-textbee-api-key` or `Authorization: Bearer <key>`.
+
+Full setup guide: [textbee.dev/docs/agents/mcp](https://textbee.dev/docs/agents/mcp).
 
 ### Slow first start
 
