@@ -18,7 +18,7 @@ These use the hosted endpoint at `https://mcp.textbee.dev/mcp`, which runs the s
 
 1. In claude.ai or Claude Desktop, open **Customize**, then **Connectors**, then **+ Add** and **Add custom connector**.
 2. Enter the name `textbee` and the URL `https://mcp.textbee.dev/mcp`, then click **Continue** twice.
-3. Choose **Sign in now** and, as the OAuth client, **Register automatically**. Click **Add**.
+3. Choose **Sign in now**, leave the OAuth client on the recommended option, and click **Add**.
 4. Paste your API key on the textbee sign-in page and click **Connect**.
 
 One connection works on the web, in Claude Desktop, and in the Claude mobile apps (the mobile apps cannot add connectors themselves). On Team and Enterprise plans, an owner adds the connector for the organization first. It lasts 90 days, then Claude asks you to reconnect. textbee checks the key and does not store it, but the key does pass through textbee's server. Revoke the key in the dashboard to disconnect. To keep the key on your machine, use the local setup below.
