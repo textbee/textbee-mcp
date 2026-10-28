@@ -2,8 +2,11 @@ import type { Device, Message, MessageList } from '@textbee/sdk'
 
 const BODY_PREVIEW_CHARS = 300
 
-/** Statuses that will not change again; anything else may still progress. */
-export const FINAL_STATUSES = ['delivered', 'failed', 'unknown'] as const
+/** Statuses that rarely change. failed and unknown can still change. */
+export const FINAL_STATUSES = ['delivered'] as const
+
+// Local shape until the published SDK types carry issueHistory.
+type WithIssueHistory = { issueHistory?: Array<{ deliveryReport?: boolean }> }
 
 /**
  * Direction of a message. Prefer the lowercase `direction` field; fall back to
@@ -41,7 +44,25 @@ function formatMessageLine(m: Message, index: number): string {
       : `to ${m.recipient ?? 'unknown number'}`
   const status = m.status ?? 'unknown'
   const header = `[${index}] ${when}  ${direction} ${party}  status=${status}  id=${m._id}`
-  return `${header}\n    ${messageBody(m)}`
+  const lines = [header, `    ${messageBody(m)}`]
+  const state = String(m.status ?? '').toLowerCase()
+  if (state === 'failed' && (m.errorCode || m.errorMessage)) {
+    const code = m.errorCode ?? ''
+    const text = m.errorMessage ?? ''
+    const detail = code && text && !text.startsWith(`${code}:`) ? `${code} - ${text}` : text || code
+    lines.push(`    error: ${detail}`)
+  } else if (state === 'unknown') {
+    lines.push('    no report from the phone within 20 minutes (not a failure)')
+  }
+  const history = (m as WithIssueHistory).issueHistory ?? []
+  const failures = history.filter((e) => !e?.deliveryReport).length
+  if (failures > 0) {
+    lines.push(`    ${failures >= 15 ? '15 or more' : failures} failure${failures === 1 ? '' : 's'} recorded`)
+  }
+  if (history.length > failures) {
+    lines.push('    delivery report not confirmed (the message was sent)')
+  }
+  return lines.join('\n')
 }
 
 export interface FormatMessagesContext {
@@ -71,7 +92,7 @@ export function formatMessages(list: MessageList, ctx: FormatMessagesContext): s
 
   lines.push('')
   lines.push(
-    `Statuses ${FINAL_STATUSES.join(', ')} are final; pending, dispatched, and sent may still change, so wait before re-checking.`,
+    'Status delivered rarely changes. failed and unknown can still change (a late phone report or a recovery). pending, dispatched, and sent are in progress. The user can ask to check again later.',
   )
 
   if (meta.nextCursor) {
