@@ -49,7 +49,7 @@ function formatMessageLine(m: Message, index: number): string {
   if (state === 'failed' && (m.errorCode || m.errorMessage)) {
     const code = m.errorCode ?? ''
     const text = m.errorMessage ?? ''
-    const detail = code && text && !text.startsWith(code) ? `${code} - ${text}` : text || code
+    const detail = code && text && !text.startsWith(`${code}:`) ? `${code} - ${text}` : text || code
     lines.push(`    error: ${detail}`)
   } else if (state === 'unknown') {
     lines.push('    no report from the phone within 20 minutes (not a failure)')
