@@ -2,7 +2,7 @@ import type { Device, Message, MessageList } from '@textbee/sdk'
 
 const BODY_PREVIEW_CHARS = 300
 
-/** Statuses that will not change again. failed and unknown can still change. */
+/** Statuses that rarely change. failed and unknown can still change. */
 export const FINAL_STATUSES = ['delivered'] as const
 
 // Local shape until the published SDK types carry errorHistory.
@@ -45,13 +45,18 @@ function formatMessageLine(m: Message, index: number): string {
   const status = m.status ?? 'unknown'
   const header = `[${index}] ${when}  ${direction} ${party}  status=${status}  id=${m._id}`
   const lines = [header, `    ${messageBody(m)}`]
-  if (status === 'failed' && (m.errorCode || m.errorMessage)) {
-    lines.push(`    error: ${[m.errorCode, m.errorMessage].filter(Boolean).join(' - ')}`)
-  } else if (status === 'sent' || status === 'delivered') {
-    const failures = (m as WithErrorHistory).errorHistory?.length ?? 0
-    if (failures > 0) {
-      lines.push(`    failed ${failures} time${failures === 1 ? '' : 's'} before it was ${status}`)
-    }
+  const state = String(m.status ?? '').toLowerCase()
+  if (state === 'failed' && (m.errorCode || m.errorMessage)) {
+    const code = m.errorCode ?? ''
+    const text = m.errorMessage ?? ''
+    const detail = code && text && !text.startsWith(code) ? `${code} - ${text}` : text || code
+    lines.push(`    error: ${detail}`)
+  } else if (state === 'unknown') {
+    lines.push('    no report from the phone within 20 minutes (not a failure)')
+  }
+  const failures = (m as WithErrorHistory).errorHistory?.length ?? 0
+  if (failures > 0) {
+    lines.push(`    ${failures >= 10 ? '10 or more' : failures} failure${failures === 1 ? '' : 's'} recorded`)
   }
   return lines.join('\n')
 }
@@ -83,7 +88,7 @@ export function formatMessages(list: MessageList, ctx: FormatMessagesContext): s
 
   lines.push('')
   lines.push(
-    'Status delivered is final. failed and unknown can still change (a late phone report or a recovery), and pending, dispatched, and sent may still change, so re-check later.',
+    'Status delivered rarely changes. failed and unknown can still change (a late phone report or a recovery). pending, dispatched, and sent are in progress. The user can ask to check again later.',
   )
 
   if (meta.nextCursor) {

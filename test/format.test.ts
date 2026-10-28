@@ -57,19 +57,49 @@ describe('formatMessages', () => {
     expect(text).toContain('error: FCM_SEND_FAILED - push failed')
   })
 
-  it('notes earlier failures on a message that later succeeded', () => {
+  it('counts recorded failures neutrally', () => {
     const entry = { code: 'FCM_SEND_FAILED', at: '2026-10-01T10:00:00.000Z', source: 'push' }
+    const fmt = (n: number) =>
+      formatMessages(
+        { data: [message({ direction: 'sent', status: 'sent', errorHistory: Array(n).fill(entry) } as Partial<Message>)], meta: baseMeta },
+        { direction: 'all', usedCursor: false, order: 'desc' },
+      )
+    expect(fmt(1)).toContain('1 failure recorded')
+    expect(fmt(3)).toContain('3 failures recorded')
+    expect(fmt(10)).toContain('10 or more failures recorded')
+    expect(fmt(1)).not.toContain('before it was')
+  })
+
+  it('compares status case-insensitively', () => {
     const list: MessageList = {
-      data: [message({ direction: 'sent', status: 'sent', errorHistory: [entry, entry] } as Partial<Message>)],
+      data: [message({ direction: 'sent', status: 'FAILED' as never, errorCode: 'X_CODE', errorMessage: 'broke' })],
       meta: baseMeta,
     }
     const text = formatMessages(list, { direction: 'all', usedCursor: false, order: 'desc' })
-    expect(text).toContain('failed 2 times before it was sent')
+    expect(text).toContain('error: X_CODE - broke')
   })
 
-  it('says failed and unknown can still change', () => {
+  it('prints only the message when it already starts with the code', () => {
+    const list: MessageList = {
+      data: [message({ direction: 'sent', status: 'failed', errorCode: 'FCM_SEND_TIMEOUT', errorMessage: 'FCM_SEND_TIMEOUT: no ack' })],
+      meta: baseMeta,
+    }
+    const text = formatMessages(list, { direction: 'all', usedCursor: false, order: 'desc' })
+    expect(text).toContain('error: FCM_SEND_TIMEOUT: no ack')
+    expect(text).not.toContain('FCM_SEND_TIMEOUT - ')
+  })
+
+  it('explains an unknown status is not a failure', () => {
+    const list: MessageList = { data: [message({ direction: 'sent', status: 'unknown' })], meta: baseMeta }
+    const text = formatMessages(list, { direction: 'all', usedCursor: false, order: 'desc' })
+    expect(text).toContain('no report from the phone within 20 minutes (not a failure)')
+  })
+
+  it('says failed and unknown can still change and delivered rarely changes', () => {
     const text = formatMessages({ data: [], meta: baseMeta }, { direction: 'all', usedCursor: false, order: 'desc' })
     expect(text).toContain('failed and unknown can still change')
+    expect(text).toContain('delivered rarely changes')
+    expect(text).not.toContain('is final')
   })
 
   it('renders missing status and missing body as unknown, never undefined', () => {
