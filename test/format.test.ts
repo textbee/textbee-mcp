@@ -71,6 +71,23 @@ describe('formatMessages', () => {
     expect(fmt(1)).not.toContain('before it was')
   })
 
+  it('does not count delivery report entries as failures', () => {
+    const fail = { code: 'FCM_SEND_FAILED', at: '2026-10-01T10:00:00.000Z', source: 'push' }
+    const report = { code: 'DELIVERY_FAILED', at: '2026-10-01T10:05:00.000Z', source: 'device', deliveryReport: true }
+    const fmt = (history: unknown[]) =>
+      formatMessages(
+        { data: [message({ direction: 'sent', status: 'sent', errorHistory: history } as Partial<Message>)], meta: baseMeta },
+        { direction: 'all', usedCursor: false, order: 'desc' },
+      )
+    const only = fmt([report])
+    expect(only).toContain('delivery report not confirmed (the message was sent)')
+    expect(only).not.toContain('failure')
+    const mixed = fmt([fail, report])
+    expect(mixed).toContain('1 failure recorded')
+    expect(mixed).toContain('delivery report not confirmed (the message was sent)')
+    expect(fmt([fail])).not.toContain('delivery report')
+  })
+
   it('compares status case-insensitively', () => {
     const list: MessageList = {
       data: [message({ direction: 'sent', status: 'FAILED' as never, errorCode: 'X_CODE', errorMessage: 'broke' })],

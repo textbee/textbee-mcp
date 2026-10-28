@@ -6,7 +6,7 @@ const BODY_PREVIEW_CHARS = 300
 export const FINAL_STATUSES = ['delivered'] as const
 
 // Local shape until the published SDK types carry errorHistory.
-type WithErrorHistory = { errorHistory?: unknown[] }
+type WithErrorHistory = { errorHistory?: Array<{ deliveryReport?: boolean }> }
 
 /**
  * Direction of a message. Prefer the lowercase `direction` field; fall back to
@@ -54,9 +54,13 @@ function formatMessageLine(m: Message, index: number): string {
   } else if (state === 'unknown') {
     lines.push('    no report from the phone within 20 minutes (not a failure)')
   }
-  const failures = (m as WithErrorHistory).errorHistory?.length ?? 0
+  const history = (m as WithErrorHistory).errorHistory ?? []
+  const failures = history.filter((e) => !e?.deliveryReport).length
   if (failures > 0) {
     lines.push(`    ${failures >= 15 ? '15 or more' : failures} failure${failures === 1 ? '' : 's'} recorded`)
+  }
+  if (history.length > failures) {
+    lines.push('    delivery report not confirmed (the message was sent)')
   }
   return lines.join('\n')
 }
