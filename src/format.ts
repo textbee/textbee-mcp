@@ -56,7 +56,7 @@ function formatMessageLine(m: Message, index: number): string {
   }
   const failures = (m as WithErrorHistory).errorHistory?.length ?? 0
   if (failures > 0) {
-    lines.push(`    ${failures >= 10 ? '10 or more' : failures} failure${failures === 1 ? '' : 's'} recorded`)
+    lines.push(`    ${failures >= 15 ? '15 or more' : failures} failure${failures === 1 ? '' : 's'} recorded`)
   }
   return lines.join('\n')
 }

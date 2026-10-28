@@ -66,7 +66,8 @@ describe('formatMessages', () => {
       )
     expect(fmt(1)).toContain('1 failure recorded')
     expect(fmt(3)).toContain('3 failures recorded')
-    expect(fmt(10)).toContain('10 or more failures recorded')
+    expect(fmt(10)).toContain('10 failures recorded')
+    expect(fmt(15)).toContain('15 or more failures recorded')
     expect(fmt(1)).not.toContain('before it was')
   })
 
