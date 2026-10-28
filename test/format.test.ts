@@ -61,7 +61,7 @@ describe('formatMessages', () => {
     const entry = { code: 'FCM_SEND_FAILED', at: '2026-10-01T10:00:00.000Z', source: 'push' }
     const fmt = (n: number) =>
       formatMessages(
-        { data: [message({ direction: 'sent', status: 'sent', errorHistory: Array(n).fill(entry) } as Partial<Message>)], meta: baseMeta },
+        { data: [message({ direction: 'sent', status: 'sent', issueHistory: Array(n).fill(entry) } as Partial<Message>)], meta: baseMeta },
         { direction: 'all', usedCursor: false, order: 'desc' },
       )
     expect(fmt(1)).toContain('1 failure recorded')
@@ -76,7 +76,7 @@ describe('formatMessages', () => {
     const report = { code: 'DELIVERY_FAILED', at: '2026-10-01T10:05:00.000Z', source: 'device', deliveryReport: true }
     const fmt = (history: unknown[]) =>
       formatMessages(
-        { data: [message({ direction: 'sent', status: 'sent', errorHistory: history } as Partial<Message>)], meta: baseMeta },
+        { data: [message({ direction: 'sent', status: 'sent', issueHistory: history } as Partial<Message>)], meta: baseMeta },
         { direction: 'all', usedCursor: false, order: 'desc' },
       )
     const only = fmt([report])

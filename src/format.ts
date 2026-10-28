@@ -5,8 +5,8 @@ const BODY_PREVIEW_CHARS = 300
 /** Statuses that rarely change. failed and unknown can still change. */
 export const FINAL_STATUSES = ['delivered'] as const
 
-// Local shape until the published SDK types carry errorHistory.
-type WithErrorHistory = { errorHistory?: Array<{ deliveryReport?: boolean }> }
+// Local shape until the published SDK types carry issueHistory.
+type WithIssueHistory = { issueHistory?: Array<{ deliveryReport?: boolean }> }
 
 /**
  * Direction of a message. Prefer the lowercase `direction` field; fall back to
@@ -54,7 +54,7 @@ function formatMessageLine(m: Message, index: number): string {
   } else if (state === 'unknown') {
     lines.push('    no report from the phone within 20 minutes (not a failure)')
   }
-  const history = (m as WithErrorHistory).errorHistory ?? []
+  const history = (m as WithIssueHistory).issueHistory ?? []
   const failures = history.filter((e) => !e?.deliveryReport).length
   if (failures > 0) {
     lines.push(`    ${failures >= 15 ? '15 or more' : failures} failure${failures === 1 ? '' : 's'} recorded`)
