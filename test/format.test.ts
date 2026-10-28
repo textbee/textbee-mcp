@@ -48,6 +48,30 @@ describe('formatMessages', () => {
     expect(text).toContain('66b0000000000000000001aa')
   })
 
+  it('shows the current error on a failed message', () => {
+    const list: MessageList = {
+      data: [message({ direction: 'sent', status: 'failed', errorCode: 'FCM_SEND_FAILED', errorMessage: 'push failed' })],
+      meta: baseMeta,
+    }
+    const text = formatMessages(list, { direction: 'all', usedCursor: false, order: 'desc' })
+    expect(text).toContain('error: FCM_SEND_FAILED - push failed')
+  })
+
+  it('notes earlier failures on a message that later succeeded', () => {
+    const entry = { code: 'FCM_SEND_FAILED', at: '2026-10-01T10:00:00.000Z', source: 'push' }
+    const list: MessageList = {
+      data: [message({ direction: 'sent', status: 'sent', errorHistory: [entry, entry] } as Partial<Message>)],
+      meta: baseMeta,
+    }
+    const text = formatMessages(list, { direction: 'all', usedCursor: false, order: 'desc' })
+    expect(text).toContain('failed 2 times before it was sent')
+  })
+
+  it('says failed and unknown can still change', () => {
+    const text = formatMessages({ data: [], meta: baseMeta }, { direction: 'all', usedCursor: false, order: 'desc' })
+    expect(text).toContain('failed and unknown can still change')
+  })
+
   it('renders missing status and missing body as unknown, never undefined', () => {
     const list: MessageList = {
       data: [message({ message: undefined, status: undefined } as unknown as Partial<Message>)],

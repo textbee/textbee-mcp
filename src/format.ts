@@ -2,8 +2,11 @@ import type { Device, Message, MessageList } from '@textbee/sdk'
 
 const BODY_PREVIEW_CHARS = 300
 
-/** Statuses that will not change again; anything else may still progress. */
-export const FINAL_STATUSES = ['delivered', 'failed', 'unknown'] as const
+/** Statuses that will not change again. failed and unknown can still change. */
+export const FINAL_STATUSES = ['delivered'] as const
+
+// Local shape until the published SDK types carry errorHistory.
+type WithErrorHistory = { errorHistory?: unknown[] }
 
 /**
  * Direction of a message. Prefer the lowercase `direction` field; fall back to
@@ -41,7 +44,16 @@ function formatMessageLine(m: Message, index: number): string {
       : `to ${m.recipient ?? 'unknown number'}`
   const status = m.status ?? 'unknown'
   const header = `[${index}] ${when}  ${direction} ${party}  status=${status}  id=${m._id}`
-  return `${header}\n    ${messageBody(m)}`
+  const lines = [header, `    ${messageBody(m)}`]
+  if (status === 'failed' && (m.errorCode || m.errorMessage)) {
+    lines.push(`    error: ${[m.errorCode, m.errorMessage].filter(Boolean).join(' - ')}`)
+  } else if (status === 'sent' || status === 'delivered') {
+    const failures = (m as WithErrorHistory).errorHistory?.length ?? 0
+    if (failures > 0) {
+      lines.push(`    failed ${failures} time${failures === 1 ? '' : 's'} before it was ${status}`)
+    }
+  }
+  return lines.join('\n')
 }
 
 export interface FormatMessagesContext {
@@ -71,7 +83,7 @@ export function formatMessages(list: MessageList, ctx: FormatMessagesContext): s
 
   lines.push('')
   lines.push(
-    `Statuses ${FINAL_STATUSES.join(', ')} are final; pending, dispatched, and sent may still change, so wait before re-checking.`,
+    'Status delivered is final. failed and unknown can still change (a late phone report or a recovery), and pending, dispatched, and sent may still change, so re-check later.',
   )
 
   if (meta.nextCursor) {

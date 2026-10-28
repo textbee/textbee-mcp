@@ -262,7 +262,7 @@ export function buildToolDefinitions(opts: BuildOptions): TextbeeToolDefinition[
       lines.push(`sms_batch_id: ${result.smsBatchId}`)
       lines.push(
         `Check per-recipient delivery with get_messages sms_batch_id="${result.smsBatchId}". ` +
-          'Statuses delivered, failed, and unknown are final.',
+          'Status delivered is final. failed and unknown can still change.',
       )
     } else {
       const immediate = result as { successCount?: number; failureCount?: number }
