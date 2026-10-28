@@ -8,13 +8,13 @@
     "source": "github"
   },
   "websiteUrl": "https://textbee.dev/mcp",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@textbee/mcp",
-      "version": "0.0.2",
+      "version": "0.1.0",
       "transport": {
         "type": "stdio"
       },
