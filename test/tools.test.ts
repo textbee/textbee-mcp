@@ -119,14 +119,30 @@ describe('send_sms', () => {
     expect(text).not.toContain('sms_batch_id: ')
   })
 
-  it('rejects invalid E.164 before any network call', async () => {
+  it('rejects sender names and impossible lengths before any network call', async () => {
     const result = await tool('send_sms').handler(
-      { message: 'hi', recipients: ['+15550100123', '0912345678'] },
+      { message: 'hi', recipients: ['+15550100123', 'MYBANK', '12'] },
       {},
     )
     expect(result.isError).toBe(true)
-    expect(resultText(result)).toContain('0912345678')
+    expect(resultText(result)).toContain('MYBANK, 12')
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('sends local numbers and short codes without formatting', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, { data: { successCount: 3, failureCount: 0 } }),
+    )
+    await tool('send_sms').handler(
+      { message: 'hi', recipients: ['(555) 555-0123', '605', ' +15550100123 '] },
+      {},
+    )
+    const [, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
+    expect(JSON.parse(init.body as string).recipients).toEqual([
+      '5555550123',
+      '605',
+      '+15550100123',
+    ])
   })
 
   it('strips a whitespace-only device_id instead of sending an empty string', async () => {
