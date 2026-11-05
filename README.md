@@ -77,7 +77,7 @@ npm install -g @textbee/mcp
 
 ### send_sms
 
-Send an SMS to one or more recipients (E.164 format, for example `+15550100123`). The sending phone is chosen automatically: your default device, otherwise the enabled device with the most recent heartbeat. Optional `device_id`, `sim_subscription_id`, and `scheduled_at`. Returns an `sms_batch_id` for delivery checks when the account uses the SMS queue.
+Send an SMS to one or more phone numbers or short codes. International format with the country code (for example `+15550100123`) works everywhere. Local numbers and short codes only reach recipients in the sending phone's country. The sending phone is chosen automatically: your default device, otherwise the enabled device with the most recent heartbeat. Optional `device_id`, `sim_subscription_id`, and `scheduled_at`. Returns an `sms_batch_id` for delivery checks when the account uses the SMS queue.
 
 ### get_messages
 

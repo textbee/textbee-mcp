@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { Textbee, countSmsSegments, isValidE164 } from '@textbee/sdk'
+import { Textbee, countSmsSegments } from '@textbee/sdk'
 import { z } from 'zod'
 import { TEXTBEE_DEFAULT_BASE_URL, VERSION, stderrLogger } from './config.js'
 import { sendDedupeKey } from './dedupe.js'
@@ -13,6 +13,23 @@ import type {
   ToolResult,
 } from './types.js'
 
+// Formatting people type inside a number. Phones ignore it, so it is removed.
+// Line breaks are kept so two numbers on two lines fail instead of joining.
+const RECIPIENT_FORMATTING = /[ \t\u00a0.\-()]/g
+// "+44 (0)20 7946 0018": the bracketed national trunk zero is not dialled in
+// international format.
+const OPTIONAL_TRUNK_ZERO = /^(\+\d{1,3})\s*\(0\)/
+// International numbers, local numbers and short codes. 15 is the E.164 maximum.
+const RECIPIENT_PATTERN = /^\+?\d{3,15}$/
+
+function normalizeRecipient(value: string): string {
+  return value.trim().replace(OPTIONAL_TRUNK_ZERO, '$1').replace(RECIPIENT_FORMATTING, '')
+}
+
+function isValidRecipient(value: string): boolean {
+  return RECIPIENT_PATTERN.test(normalizeRecipient(value))
+}
+
 const INSTRUCTIONS =
   'textbee sends and reads SMS through the user\'s own Android phone. Sends cost the user ' +
   'real messages against their plan quota, so confirm the recipient before sending to a ' +
@@ -20,8 +37,11 @@ const INSTRUCTIONS =
   'Reads are account-wide and need no device id.'
 
 const SEND_SMS_DESCRIPTION =
-  'Send an SMS through the user\'s own textbee account and Android phone. Recipients must ' +
-  'be in international E.164 format such as +15550100123. The sending phone is chosen ' +
+  'Send an SMS through the user\'s own textbee account and Android phone. Recipients are ' +
+  'phone numbers or short codes. Prefer international format with the country code, such ' +
+  'as +15550100123. Local numbers and short codes are sent as given and only reach ' +
+  'recipients in the sending phone\'s country. Sender names such as MYBANK cannot ' +
+  'receive SMS. The sending phone is chosen ' +
   'automatically: the account default device, otherwise the enabled device with the most ' +
   'recent heartbeat. Only pass device_id when the user explicitly names a phone; ids come ' +
   'from list_devices. Sending costs the user a real message against their textbee plan ' +
@@ -61,8 +81,9 @@ const sendSmsShape = {
     .min(1)
     .max(1000)
     .describe(
-      'Phone numbers in international E.164 format including the country code, for ' +
-        'example ["+15550100123"]. Each recipient counts as one message. The plan caps ' +
+      'Phone numbers or short codes. Prefer international format with the country code, ' +
+        'for example ["+15550100123"]. Use a local number or short code only when the user ' +
+        'gives one. Each recipient counts as one message. The plan caps ' +
         'how many recipients one send may have; the server rejects the send beyond it.',
     ),
   device_id: z
@@ -197,7 +218,7 @@ export function buildToolDefinitions(opts: BuildOptions): TextbeeToolDefinition[
       scheduled_at?: string
     }
 
-    const invalid = input.recipients.filter((r) => !isValidE164(r.trim()))
+    const invalid = input.recipients.filter((r) => !isValidRecipient(r))
     if (invalid.length > 0) {
       return {
         isError: true,
@@ -205,14 +226,14 @@ export function buildToolDefinitions(opts: BuildOptions): TextbeeToolDefinition[
           {
             type: 'text',
             text:
-              `Not sent. These recipients are not valid E.164 numbers: ${invalid.join(', ')}. ` +
-              'Use the international format with a country code and no spaces, for example +15550100123.',
+              `Not sent. These recipients are not phone numbers or short codes: ${invalid.join(', ')}. ` +
+              'Use 3 to 15 digits with an optional leading +, for example +15550100123.',
           },
         ],
       }
     }
 
-    const recipients = input.recipients.map((r) => r.trim())
+    const recipients = input.recipients.map(normalizeRecipient)
     const deviceId = input.device_id?.trim() || undefined
 
     const dedupeKey = opts.sendDedupe
