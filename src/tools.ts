@@ -14,12 +14,16 @@ import type {
 } from './types.js'
 
 // Formatting people type inside a number. Phones ignore it, so it is removed.
-const RECIPIENT_FORMATTING = /[\s.\-()]/g
+// Line breaks are kept so two numbers on two lines fail instead of joining.
+const RECIPIENT_FORMATTING = /[ \t\u00a0.\-()]/g
+// "+44 (0)20 7946 0018": the bracketed national trunk zero is not dialled in
+// international format.
+const OPTIONAL_TRUNK_ZERO = /^(\+\d{1,3})\s*\(0\)/
 // International numbers, local numbers and short codes. 15 is the E.164 maximum.
 const RECIPIENT_PATTERN = /^\+?\d{3,15}$/
 
 function normalizeRecipient(value: string): string {
-  return value.trim().replace(RECIPIENT_FORMATTING, '')
+  return value.trim().replace(OPTIONAL_TRUNK_ZERO, '$1').replace(RECIPIENT_FORMATTING, '')
 }
 
 function isValidRecipient(value: string): boolean {

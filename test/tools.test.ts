@@ -131,10 +131,13 @@ describe('send_sms', () => {
 
   it('sends local numbers and short codes without formatting', async () => {
     fetchMock.mockResolvedValue(
-      jsonResponse(200, { data: { successCount: 3, failureCount: 0 } }),
+      jsonResponse(200, { data: { successCount: 4, failureCount: 0 } }),
     )
     await tool('send_sms').handler(
-      { message: 'hi', recipients: ['(555) 555-0123', '605', ' +15550100123 '] },
+      {
+        message: 'hi',
+        recipients: ['(555) 555-0123', '605', ' +15550100123 ', '+44 (0)20 7946 0018'],
+      },
       {},
     )
     const [, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
@@ -142,7 +145,17 @@ describe('send_sms', () => {
       '5555550123',
       '605',
       '+15550100123',
+      '+442079460018',
     ])
+  })
+
+  it('does not join two numbers split by a line break', async () => {
+    const result = await tool('send_sms').handler(
+      { message: 'hi', recipients: ['5550100\n5550101'] },
+      {},
+    )
+    expect(result.isError).toBe(true)
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('strips a whitespace-only device_id instead of sending an empty string', async () => {
