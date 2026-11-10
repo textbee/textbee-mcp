@@ -48,6 +48,29 @@ describe('formatMessages', () => {
     expect(text).toContain('66b0000000000000000001aa')
   })
 
+  it('shows the requested SIM as a number, one-based', () => {
+    const list: MessageList = {
+      data: [message({ direction: 'sent', status: 'sent', simSlotIndex: 1 } as Partial<Message>)],
+      meta: baseMeta,
+    }
+    const text = formatMessages(list, { direction: 'all', usedCursor: false, order: 'desc' })
+    expect(text).toContain('Requested SIM 2')
+  })
+
+  it('shows SIM 1 for slot 0 and no SIM line when unset', () => {
+    const first: MessageList = {
+      data: [message({ direction: 'sent', status: 'sent', simSlotIndex: 0 } as Partial<Message>)],
+      meta: baseMeta,
+    }
+    const none: MessageList = {
+      data: [message({ direction: 'sent', status: 'sent' })],
+      meta: baseMeta,
+    }
+    const ctx = { direction: 'all', usedCursor: false, order: 'desc' } as const
+    expect(formatMessages(first, ctx)).toContain('Requested SIM 1')
+    expect(formatMessages(none, ctx)).not.toContain('SIM ')
+  })
+
   it('shows the current error on a failed message', () => {
     const list: MessageList = {
       data: [message({ direction: 'sent', status: 'failed', errorCode: 'FCM_SEND_FAILED', errorMessage: 'push failed' })],

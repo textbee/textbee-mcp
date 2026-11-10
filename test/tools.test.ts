@@ -170,6 +170,45 @@ describe('send_sms', () => {
     expect(JSON.parse(init.body as string)).not.toHaveProperty('deviceId')
   })
 
+  it('maps sim_number to a zero-based simSlotIndex', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, { data: { successCount: 1, failureCount: 0 } }),
+    )
+    await tool('send_sms').handler(
+      { message: 'hi', recipients: ['+15550100123'], sim_number: 2 },
+      {},
+    )
+    const [, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body.simSlotIndex).toBe(1)
+    expect(body).not.toHaveProperty('simSubscriptionId')
+  })
+
+  it('uses only sim_number when sim_subscription_id is also given', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, { data: { successCount: 1, failureCount: 0 } }),
+    )
+    await tool('send_sms').handler(
+      { message: 'hi', recipients: ['+15550100123'], sim_number: 1, sim_subscription_id: 7 },
+      {},
+    )
+    const [, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body.simSlotIndex).toBe(0)
+    expect(body).not.toHaveProperty('simSubscriptionId')
+  })
+
+  it('sends no SIM fields when none is given', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, { data: { successCount: 1, failureCount: 0 } }),
+    )
+    await tool('send_sms').handler({ message: 'hi', recipients: ['+15550100123'] }, {})
+    const [, init] = fetchMock.mock.calls[0] as [URL, RequestInit]
+    const body = JSON.parse(init.body as string)
+    expect(body).not.toHaveProperty('simSlotIndex')
+    expect(body).not.toHaveProperty('simSubscriptionId')
+  })
+
   it('suppresses an identical send inside the dedupe window', async () => {
     fetchMock.mockResolvedValue(
       jsonResponse(200, {
