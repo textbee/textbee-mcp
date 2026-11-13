@@ -5,7 +5,8 @@ const BODY_PREVIEW_CHARS = 300
 /** Statuses that rarely change. failed and unknown can still change. */
 export const FINAL_STATUSES = ['delivered'] as const
 
-// Local shape until the published SDK types carry issueHistory.
+// Local shapes until the published SDK types carry simSlotIndex and issueHistory.
+type WithSimSlot = { simSlotIndex?: number }
 type WithIssueHistory = { issueHistory?: Array<{ deliveryReport?: boolean }> }
 
 /**
@@ -45,6 +46,10 @@ function formatMessageLine(m: Message, index: number): string {
   const status = m.status ?? 'unknown'
   const header = `[${index}] ${when}  ${direction} ${party}  status=${status}  id=${m._id}`
   const lines = [header, `    ${messageBody(m)}`]
+  const slot = (m as WithSimSlot).simSlotIndex
+  if (typeof slot === 'number') {
+    lines.push(`    Requested SIM ${slot + 1}`)
+  }
   const state = String(m.status ?? '').toLowerCase()
   if (state === 'failed' && (m.errorCode || m.errorMessage)) {
     const code = m.errorCode ?? ''

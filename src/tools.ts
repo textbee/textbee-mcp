@@ -95,15 +95,23 @@ const sendSmsShape = {
         'textbee choose. Pass it only when the user asks for a specific phone. Ids come ' +
         'from list_devices.',
     ),
+  sim_number: z
+    .number()
+    .int()
+    .min(1)
+    .max(8)
+    .optional()
+    .describe(
+      "Which SIM sends the message: 1 for SIM 1, 2 for SIM 2. Omit to use the phone's default SIM.",
+    ),
   sim_subscription_id: z
     .number()
     .int()
     .min(0)
     .optional()
     .describe(
-      'Which SIM sends on a dual-SIM phone. The server does not validate this: a wrong ' +
-        'value is silently ignored and the phone default SIM is used. The id is shown in ' +
-        'the textbee Android app.',
+      'Older option. The Android id of a SIM. It can change after a SIM swap, and a wrong ' +
+        'value is silently ignored. Prefer sim_number. If both are given, only sim_number is used.',
     ),
   scheduled_at: z
     .string()
@@ -214,6 +222,7 @@ export function buildToolDefinitions(opts: BuildOptions): TextbeeToolDefinition[
       message: string
       recipients: string[]
       device_id?: string
+      sim_number?: number
       sim_subscription_id?: number
       scheduled_at?: string
     }
@@ -261,9 +270,11 @@ export function buildToolDefinitions(opts: BuildOptions): TextbeeToolDefinition[
       message: input.message,
       recipients,
       ...(deviceId !== undefined ? { deviceId } : {}),
-      ...(input.sim_subscription_id !== undefined
-        ? { simSubscriptionId: input.sim_subscription_id }
-        : {}),
+      ...(input.sim_number !== undefined
+        ? { simSlotIndex: input.sim_number - 1 }
+        : input.sim_subscription_id !== undefined
+          ? { simSubscriptionId: input.sim_subscription_id }
+          : {}),
       ...(input.scheduled_at !== undefined ? { scheduledAt: input.scheduled_at } : {}),
     })
 
