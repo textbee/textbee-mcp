@@ -38,9 +38,10 @@ const INSTRUCTIONS =
 
 const SEND_SMS_DESCRIPTION =
   'Send an SMS through the user\'s own textbee account and Android phone. Recipients are ' +
-  'phone numbers or short codes. Prefer international format with the country code, such ' +
-  'as +15550100123. Local numbers and short codes are sent as given and only reach ' +
-  'recipients in the sending phone\'s country. Sender names such as MYBANK cannot ' +
+  'phone numbers or short codes, sent as the user gives them. A local number or short ' +
+  'code reaches recipients in the sending phone\'s country. For a number in another ' +
+  'country, use international format with the country code, such as +15550100123. ' +
+  'Sender names such as MYBANK cannot ' +
   'receive SMS. The sending phone is chosen ' +
   'automatically: the account default device, otherwise the enabled device with the most ' +
   'recent heartbeat. Only pass device_id when the user explicitly names a phone; ids come ' +
@@ -81,9 +82,9 @@ const sendSmsShape = {
     .min(1)
     .max(1000)
     .describe(
-      'Phone numbers or short codes. Prefer international format with the country code, ' +
-        'for example ["+15550100123"]. Use a local number or short code only when the user ' +
-        'gives one. Each recipient counts as one message. The plan caps ' +
+      'Phone numbers or short codes, as the user gives them, for example ["5550100123"] ' +
+        'or ["+15550100123"]. Do not add a country code or ask for one when the user gives ' +
+        'a local number. Each recipient counts as one message. The plan caps ' +
         'how many recipients one send may have; the server rejects the send beyond it.',
     ),
   device_id: z
