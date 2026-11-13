@@ -12,8 +12,8 @@ importers:
         specifier: 1.30.0
         version: 1.30.0(zod@4.4.3)
       '@textbee/sdk':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.6.0
+        version: 0.6.0
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -318,8 +318,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@textbee/sdk@0.2.0':
-    resolution: {integrity: sha512-TVVdIQKW16Iz63vX3ZfVa3RVwOL3vPdIRQznwVBYjtkZwkHoajqM+5KAzpRZP0sEnF1mTlW2RjGsHaBdNeTJOQ==}
+  '@textbee/sdk@0.6.0':
+    resolution: {integrity: sha512-3AX7gJzsmzjZ6+gioNGqnJRDXiVRWZDW7oDAQOoiP//RxkEWRQN83cpEMnxp142L94BQRHsbYJDADeUiGgZjhQ==}
     engines: {node: '>=18'}
 
   '@types/estree@1.0.9':
@@ -1063,7 +1063,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.62.4':
     optional: true
 
-  '@textbee/sdk@0.2.0': {}
+  '@textbee/sdk@0.6.0': {}
 
   '@types/estree@1.0.9': {}
 
