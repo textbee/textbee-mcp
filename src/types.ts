@@ -56,6 +56,11 @@ export interface BuildOptions {
   logger?: Logger | undefined
   serverInfo?: { name?: string; version?: string } | undefined
   /**
+   * Name and version of the host app, for example `my-host/1.0.0`. Sent to
+   * the textbee API ahead of this package's own name.
+   */
+  clientName?: string | undefined
+  /**
    * Suppress an identical send repeated within the store's window. Intended
    * for the hosted remote, where HTTP clients retry timed-out calls and would
    * double-send. Omit for stdio.

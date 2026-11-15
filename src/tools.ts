@@ -199,6 +199,19 @@ interface CallEnv {
   logger: Logger
 }
 
+const CLIENT_NAME_PART = /^[A-Za-z0-9._-]{1,64}\/[A-Za-z0-9._+-]{1,32}$/
+
+// A host name the SDK would reject is dropped, so it can never fail a tool call
+export function clientOptions(apiKey: string, baseUrl: string, hostClientName?: string) {
+  const hostParts = hostClientName?.trim().split(/\s+/).filter(Boolean) ?? []
+  const host =
+    hostParts.length > 0 && hostParts.length <= 3 && hostParts.every((p) => CLIENT_NAME_PART.test(p))
+      ? hostParts.join(' ')
+      : undefined
+  const clientName = [host, `textbee-mcp/${VERSION}`].filter(Boolean).join(' ')
+  return { apiKey, baseUrl, clientName }
+}
+
 export function buildToolDefinitions(opts: BuildOptions): TextbeeToolDefinition[] {
   const logger = opts.logger ?? stderrLogger
 
@@ -210,7 +223,7 @@ export function buildToolDefinitions(opts: BuildOptions): TextbeeToolDefinition[
       try {
         const creds = await opts.credentials(ctx)
         baseUrl = creds.baseUrl
-        const client = new Textbee({ apiKey: creds.apiKey, baseUrl: creds.baseUrl })
+        const client = new Textbee(clientOptions(creds.apiKey, creds.baseUrl, opts.clientName))
         return await body({ client, apiKey: creds.apiKey, baseUrl, logger }, input)
       } catch (err) {
         return errorResult(err, { baseUrl, logger })
