@@ -1,6 +1,6 @@
 {
   "name": "@textbee/mcp",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "mcpName": "io.github.textbee/mcp",
   "description": "MCP server for textbee.dev. Give your AI agent a phone number: send and read SMS through your own Android phone.",
   "license": "MIT",
@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
-    "@textbee/sdk": "^0.6.0",
+    "@textbee/sdk": "^0.7.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
