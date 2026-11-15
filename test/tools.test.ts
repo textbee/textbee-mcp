@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { buildToolDefinitions } from '../src/tools.js'
+import { buildToolDefinitions, clientOptions } from '../src/tools.js'
+import { VERSION } from '../src/config.js'
 import { createMemorySendDedupe } from '../src/dedupe.js'
 import { staticCredentials } from '../src/credentials.js'
 import type { BuildOptions, ToolResult } from '../src/types.js'
@@ -400,5 +401,30 @@ describe('error mapping', () => {
       keys.push((init.headers as Record<string, string>)['x-api-key'] ?? '')
     }
     expect(keys).toEqual(['key-a', 'key-b'])
+  })
+})
+
+describe('clientOptions', () => {
+  it('names the MCP package to the API', () => {
+    expect(clientOptions('key', 'https://api.textbee.dev/api/v1')).toEqual({
+      apiKey: 'key',
+      baseUrl: 'https://api.textbee.dev/api/v1',
+      clientName: `textbee-mcp/${VERSION}`,
+    })
+  })
+
+  it.each(['', 'my host', 'host', 'a/1 b/2 c/3 d/4', 'host/1.0\nx: y'])(
+    'drops the invalid host name %j',
+    (host) => {
+      expect(clientOptions('key', 'https://x.test/api/v1', host).clientName).toBe(
+        `textbee-mcp/${VERSION}`,
+      )
+    },
+  )
+
+  it('puts the host name first', () => {
+    expect(clientOptions('key', 'https://x.test/api/v1', ' host/1.0.0 ').clientName).toBe(
+      `host/1.0.0 textbee-mcp/${VERSION}`,
+    )
   })
 })
